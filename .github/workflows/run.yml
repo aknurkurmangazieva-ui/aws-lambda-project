@@ -1,12 +1,13 @@
 
-name: run-python
+name: Python Lambda Test
 
 on:
   push:
+  pull_request:
   workflow_dispatch:
 
 jobs:
-  run:
+  test:
     runs-on: ubuntu-24.04
 
     steps:
@@ -18,8 +19,18 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Show project files
-        run: ls -la
+      - name: Find Lambda file
+        run: |
+          echo "Repository contents:"
+          ls -la
+          echo "Searching for lambda_function.py..."
+          find . -type f -name "lambda_function.py"
 
       - name: Run Lambda function
-        run: python -u lambda_function.py
+        run: |
+          FILE=$(find . -type f -name "lambda_function.py" -print -quit)
+          if [ -z "$FILE" ]; then
+            echo "ERROR: lambda_function.py was not found."
+            exit 1
+          fi
+          python -u "$FILE"
